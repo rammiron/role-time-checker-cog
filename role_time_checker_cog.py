@@ -1,8 +1,11 @@
 import os
+import random
+
 import discord
 import easyocr
 from PIL import Image, ImageEnhance
 from discord.ext import commands
+from discord import types
 
 symbols_replace = {
     "б": "6", "о": "0", "з": "3", "ч": "4"
@@ -95,15 +98,23 @@ class RoleTimeCheckerCog(commands.Cog):
 
     @commands.message_command(name="Извлечь время ролей.")
     async def get_time(self, ctx: discord.ApplicationContext, message: discord.Message):
+
         if not message.attachments:
             await ctx.respond("Скриншот не обнаружен.", ephemeral=True)
+
             return
         attachment = message.attachments[0]
-        filename = attachment.filename
+        if not "image" in attachment.content_type:
+            await ctx.respond("Скриншот не обнаружен.", ephemeral=True)
+            return
+
         await ctx.defer()
         reader = easyocr.Reader(['en', 'ru'], gpu=True)
-        await attachment.save('temp.jpg')
-        with Image.open('temp.jpg') as img:
+
+        temp_name = f"temp{random.randint(0, 1000) + random.randint(0, 1000)}.jpg"
+
+        await attachment.save(temp_name)
+        with Image.open(temp_name) as img:
             img = img.convert('L')
             obj = ImageEnhance.Contrast(img)
             obj.enhance(100)
@@ -111,10 +122,10 @@ class RoleTimeCheckerCog(commands.Cog):
             obj.enhance(2)
             obj = ImageEnhance.Brightness(img)
             obj.enhance(4)
-            img.save('temp.jpg')
-        result = reader.readtext('temp.jpg', detail=0)
-        os.remove('temp.jpg')
+            img.save(temp_name)
 
+        result = reader.readtext(temp_name, detail=0)
+        os.remove(temp_name)
         temp = ""
         for item in result:
             temp += item + "\n"
