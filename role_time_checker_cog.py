@@ -1,3 +1,4 @@
+import io
 import os
 import random
 
@@ -103,32 +104,28 @@ class RoleTimeCheckerCog(commands.Cog):
             await ctx.respond("Скриншот не обнаружен.", ephemeral=True)
 
             return
-        attachment = message.attachments[0]
-        if not "image" in attachment.content_type:
-            await ctx.respond("Скриншот не обнаружен.", ephemeral=True)
-            return
-
         await ctx.defer()
-        reader = easyocr.Reader(['en', 'ru'], gpu=True)
+        for attachment in message.attachments:
+            reader = easyocr.Reader(['en', 'ru'], gpu=True)
 
-        temp_name = f"temp{random.randint(0, 1000) + random.randint(0, 1000)}.jpg"
+            temp_name = f"temp{random.randint(0, 1000) + random.randint(0, 1000)}.jpg"
 
-        await attachment.save(temp_name)
-        with Image.open(temp_name) as img:
-            img = img.convert('L')
-            obj = ImageEnhance.Contrast(img)
-            obj.enhance(100)
-            obj = ImageEnhance.Sharpness(img)
-            obj.enhance(2)
-            obj = ImageEnhance.Brightness(img)
-            obj.enhance(4)
-            img.save(temp_name)
+            image_data = await attachment.read()
+            with Image.open(io.BytesIO(image_data)) as img:
+                img = img.convert('L')
+                obj = ImageEnhance.Contrast(img)
+                obj.enhance(100)
+                obj = ImageEnhance.Sharpness(img)
+                obj.enhance(2)
+                obj = ImageEnhance.Brightness(img)
+                obj.enhance(4)
+                img.save(temp_name)
 
-        result = reader.readtext(temp_name, detail=0)
-        os.remove(temp_name)
-        temp = ""
-        for item in result:
-            temp += item + "\n"
-        output = text_handler(temp.lower())
-
-        await ctx.respond(output_handler(output))
+            result = reader.readtext(temp_name, detail=0)
+            os.remove(temp_name)
+            temp = ""
+            for item in result:
+                temp += item + "\n"
+            output = text_handler(temp.lower())
+            await ctx.send(output_handler(output))
+        await ctx.respond("Готово.", ephemeral=True)
