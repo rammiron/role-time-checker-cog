@@ -1,7 +1,7 @@
 import io
 import os
 import random
-
+from Levenshtein import distance
 import discord
 import easyocr
 from PIL import Image, ImageEnhance
@@ -17,6 +17,60 @@ numeric_replace = {
 
 black_list = ["капитан", "магистрат", "юрист", "агент внутренних дел", "смотритель", "офицер сб", "детектив",
               "кадет сб", "глава службы безопасности", "пилот"]
+roles = [
+    "капитан",
+    "глава персонала",
+    "глава службы безопасности",
+    "старший инженер",
+    "научный руководитель",
+    "главный врач",
+    "квартирмейстер",
+    "магистрат",
+    "агент Внутренних Дел",
+    "юрист",
+    "смотритель",
+    "инструктор СБ",
+    "детектив",
+    "пилот СБ",
+    "офицер СБ",
+    "бригмедик",
+    "кадет СБ",
+    "ведущий врач",
+    "химик",
+    "врач",
+    "парамедик",
+    "коронер",
+    "психолог",
+    "интерн",
+    "ведущий учёный",
+    "учёный",
+    "лаборант",
+    "ведущий инженер",
+    "атмосферный техник",
+    "инженер",
+    "технический ассистент",
+    "ведущий утилизатор",
+    "утилизатор",
+    "грузчик",
+    "администратор сервиса",
+    "шеф-повар",
+    "ботаник",
+    "бармен",
+    "сервисный работник",
+    "боксер",
+    "уборщик",
+    "библиотекарь",
+    "священник",
+    "зоотехник",
+    "репортёр",
+    "музыкант",
+    "ассистент",
+    "мим",
+    "клоун",
+    "киборг",
+    "искусственный интеллект",
+    "офицер «Синий щит»"
+]
 
 
 def text_handler(text):
@@ -64,13 +118,24 @@ def output_handler(text):
 
     for i in range(0, len(text) - 1):
         if text[i] == "\n":
+            if temp not in roles:
+                smallest = len(temp)
+                role_name = ""
+                for role in roles:
+                    dst = distance(temp, role)
+                    if dst < smallest:
+                        smallest = dst
+                        role_name = role
+                if smallest < 2:
+                    temp = role_name
             to_array.append(temp)
             temp = ""
         else:
             temp += text[i]
     buffer = []
-    output = ""
+    output = " "
     index = 0
+    print(to_array)
     while index < len(to_array) - 1:
         next = index + 1
         if to_array[index][0].isnumeric():
