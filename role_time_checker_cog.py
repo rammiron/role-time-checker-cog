@@ -133,7 +133,6 @@ def output_handler(text):
     buffer = []
     output = " "
     index = 0
-    print(to_array)
     while index < len(to_array) - 1:
         next = index + 1
         if to_array[index][0].isnumeric():
