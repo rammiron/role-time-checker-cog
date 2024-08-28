@@ -16,6 +16,9 @@ numeric_replace = {
 }
 
 roles = [
+    "общее игровое время",
+    'офицер "синий щит"',
+    '"синий щит"'
     "капитан",
     "глава персонала",
     "глава службы безопасности",
@@ -66,8 +69,7 @@ roles = [
     "мим",
     "клоун",
     "киборг",
-    "искусственный интеллект",
-    "офицер «синий щит»"
+    "искусственный интеллект"
 ]
 
 
@@ -113,12 +115,14 @@ def text_handler(text):
 def output_handler(text):
     to_array = []
     temp = ""
-
     for i in range(0, len(text) - 1):
         if text[i] == "\n":
             if temp not in roles:
                 smallest = len(temp)
                 role_name = ""
+                if distance(temp, "время") < 2 or distance(temp, "должность") < 2:
+                    temp = ""
+                    continue
                 for role in roles:
                     dst = distance(temp, role)
                     if dst < smallest:
@@ -126,29 +130,65 @@ def output_handler(text):
                         role_name = role
                 if smallest < 2:
                     temp = role_name
+                if temp.startswith("0бщ") or temp.startswith("06щ") or temp.startswith("Общ") or temp.startswith("О6щ"):
+                    split = temp.split(":")
+
+                    to_array.append(f"\nобщее игровое время")
+                    to_array.append(split[1].replace(" ", ""))
+                    temp = ""
+                    continue
             to_array.append(temp)
             temp = ""
         else:
             temp += text[i]
-    buffer = []
+    buffer = ""
     output = " "
     index = 0
     while index < len(to_array) - 1:
         next = index + 1
         if to_array[index][0].isnumeric():
-            buffer.append(to_array[index])
+
+            if not len(to_array[index]) > 3:
+                index += 1
+                continue
+
+            if (not to_array[index][1].isnumeric() and not to_array[index][1] == "ч" and not to_array[index][1] == "м"
+                    and to_array[index][2] != " "):
+
+                if to_array[next][0].isnumeric():
+
+                    to_array[index] = numeric_replace[to_array[index][0]] + to_array[index][1:]
+                    output += f"{to_array[index]}: {to_array[next]}\n"
+                    index += 2
+                    continue
+                elif buffer != "":
+
+                    to_array[index] = numeric_replace[to_array[index][0]] + to_array[index][1:]
+                    output += f"{to_array[index]}: {buffer}\n"
+                    buffer = ""
+                    index += 2
+                    continue
+                continue
+
+            buffer = to_array[index][0]
             index += 1
             continue
         if not to_array[index][0].isnumeric() and next > len(to_array) - 1:
-            if len(buffer) == 0:
-                index += 2
-                continue
-            output += f"{to_array[index]}: {buffer.pop()}"
+            index += 2
+            continue
         if not to_array[index][0].isnumeric() and not to_array[next][0].isnumeric():
-            if len(buffer) == 0:
+            if next + 1 > len(to_array) - 1:
                 index += 2
                 continue
-            output += f"{to_array[index]}: {buffer.pop()}"
+            if to_array[next + 1][0].isnumeric() and (
+                    to_array[next + 1][1].isnumeric() or to_array[next + 1][1] == "ч"):
+                if to_array[index].endswith('"'):
+                    to_array[index] = f'"{to_array[index]}'
+                output += f"{to_array[index]} {to_array[next]}: {to_array[next + 1]}\n"
+                index += 3
+                continue
+            index += 2
+            continue
         output += f"{to_array[index]}: {to_array[next]}\n"
         index += 2
 
