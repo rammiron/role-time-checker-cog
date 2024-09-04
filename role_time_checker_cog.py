@@ -21,21 +21,10 @@ roles = [
     '"синий щит"'
     "капитан",
     "глава персонала",
-    "глава службы безопасности",
     "старший инженер",
     "научный руководитель",
     "главный врач",
     "квартирмейстер",
-    "магистрат",
-    "агент внутренних дел",
-    "юрист",
-    "смотритель",
-    "инструктор сб",
-    "детектив",
-    "пилот сб",
-    "офицер cб",
-    "бригмедик",
-    "кадет сб",
     "ведущий врач",
     "химик",
     "врач",
@@ -68,9 +57,11 @@ roles = [
     "ассистент",
     "мим",
     "клоун",
-    "киборг",
-    "искусственный интеллект"
+    "киборг"
 ]
+
+black_list = ["агент внутренних дел", "магистрат", "юрист", "глава службы безопасности", "офицер сб", "инструктор сб",
+              "кадет сб", "смотритель"]
 
 
 def text_handler(text):
@@ -112,7 +103,7 @@ def text_handler(text):
     return output
 
 
-def output_handler(text):
+def output_handler(text):  # TODO: ADD SYSTEM FOR REPLACE ROLE NAMES, EXAMPLE: (технический ассистент - инженер-стажер)
     to_array = []
     temp = ""
     for i in range(0, len(text) - 1):
@@ -133,8 +124,11 @@ def output_handler(text):
                 if temp.startswith("0бщ") or temp.startswith("06щ") or temp.startswith("Общ") or temp.startswith("О6щ"):
                     split = temp.split(":")
 
-                    to_array.append(f"\nобщее игровое время")
+                    to_array.append(f"\nвсё")
                     to_array.append(split[1].replace(" ", ""))
+                    temp = ""
+                    continue
+                if temp in black_list:
                     temp = ""
                     continue
             to_array.append(temp)
