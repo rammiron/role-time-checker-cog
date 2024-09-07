@@ -14,6 +14,12 @@ symbols_replace = {
 numeric_replace = {
     "6": "б", "0": "о", "3": "з", "4": "ч"
 }
+role_names_replace = {
+    "технический ассистент": "инженер-стажер",
+    "пассажир": "ассистент",
+    "доктор": "врач",
+    "общее игровое время": "всё"
+}
 
 roles = [
     "общее игровое время",
@@ -103,7 +109,7 @@ def text_handler(text):
     return output
 
 
-def output_handler(text):  # TODO: ADD SYSTEM FOR REPLACE ROLE NAMES, EXAMPLE: (технический ассистент - инженер-стажер)
+def output_handler(text):
     to_array = []
     temp = ""
     for i in range(0, len(text) - 1):
@@ -131,6 +137,11 @@ def output_handler(text):  # TODO: ADD SYSTEM FOR REPLACE ROLE NAMES, EXAMPLE: (
                 if temp in black_list:
                     temp = ""
                     continue
+
+            if temp in role_names_replace:
+                to_array.append(role_names_replace[temp])
+                temp = ""
+                continue
             to_array.append(temp)
             temp = ""
         else:
