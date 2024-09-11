@@ -8,23 +8,33 @@ import easyocr
 from PIL import Image, ImageEnhance
 from discord.ext import commands
 
+# словарь для исправления ошибок замены цифр на буквы
 symbols_replace = {
     "б": "6", "о": "0", "з": "3", "ч": "4"
 }
+
+# словарь для исправления ошибок замены букв на цифры
 numeric_replace = {
     "6": "б", "0": "о", "3": "з", "4": "ч"
 }
+
+# словарь для замены имен ролей на действующие
 role_names_replace = {
     "технический ассистент": "инженер-стажёр",
     "инженер-стажер": "инженер-стажёр",
     "пассажир": "ассистент",
     "научный ассистент": "лаборант",
+    "научный руководитель": "науч. рук.",
     "ученый": "учёный",
     "доктор": "врач",
     "патологоанатом": "коронер",
-    "общее игровое время": "всё"
+    "общее игровое время": "всё",
+    "гв": "главный врач",
+    "си": "старший инженер",
+    "кэп": "капитан"
 }
 
+# список имен ролей для того, чтобы сверяться при проверки грамматики
 roles = [
     "общее игровое время",
     'офицер "синий щит"',
@@ -70,10 +80,12 @@ roles = [
     "киборг"
 ]
 
+# эти роли не будут добавляться в вывод
 black_list = ["агент внутренних дел", "магистрат", "юрист", "глава службы безопасности", "офицер сб", "инструктор сб",
               "кадет сб", "смотритель"]
 
 
+# функция для устранения ошибок из текста, к примеру в случае, когда "о" распознается как "0"
 def text_handler(text):
     output = text
     for i in range(0, len(output) - 1):
@@ -113,9 +125,11 @@ def text_handler(text):
     return output
 
 
+# функция для конечной обработки сообщения, которое подгоняет всё под необходимый формат и избавляет выход от лишнего
 def output_handler(text):
     to_array = []
     temp = ""
+    # здесь мы сверяем названия с заготовленным словарем при помощи библиотеки Levenshtein
     for i in range(0, len(text) - 1):
         if text[i] == "\n":
             if temp not in roles:
@@ -153,6 +167,7 @@ def output_handler(text):
     buffer = ""
     output = " "
     index = 0
+    # здесь происходит компоновка названий ролей и времени, для понятного выхода соответствующего шаблону
     while index < len(to_array) - 1:
         next = index + 1
         if to_array[index][0].isnumeric():
@@ -222,6 +237,7 @@ class RoleTimeCheckerCog(commands.Cog):
             temp_name = f"temp{random.randint(0, 1000) + random.randint(0, 1000)}.jpg"
 
             image_data = await attachment.read()
+            # обрабатываем входяшее изображение для последующей обработки уже нейросетью
             with Image.open(io.BytesIO(image_data)) as img:
                 img = img.convert('L')
                 obj = ImageEnhance.Contrast(img)
@@ -234,13 +250,17 @@ class RoleTimeCheckerCog(commands.Cog):
                 del obj
                 del img
             del image_data
+            # вычленяем текст из изображения с помощью EasyOCR
             result = reader.readtext(temp_name, detail=0)
+            # удаляем сохраненное изображение
             os.remove(temp_name)
             temp = ""
             for item in result:
                 temp += item + "\n"
             gc.collect()
+            # обрабатываем полученный текст
             output = text_handler(temp.lower())
+            # отправляем сообщение обработав его для выхода
             await ctx.send(output_handler(output))
         gc.collect()
         del reader
