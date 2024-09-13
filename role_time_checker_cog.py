@@ -1,4 +1,5 @@
 import io
+import datetime
 import gc
 import os
 import random
@@ -7,6 +8,15 @@ import discord
 import easyocr
 from PIL import Image, ImageEnhance
 from discord.ext import commands
+
+if "cogs" in __name__:
+    from .logging_system.logging_system import WriteLogs
+else:
+    from logging_system.logging_system import WriteLogs
+
+
+user_id_for_send_logs = 1048600490562293850
+logs_path = os.path.join(os.path.dirname(__file__), "logging_system", "logs", 'logs.logs')
 
 # словарь для исправления ошибок замены цифр на буквы
 symbols_replace = {
@@ -262,7 +272,11 @@ class RoleTimeCheckerCog(commands.Cog):
             # обрабатываем полученный текст
             output = text_handler(temp.lower())
             # отправляем сообщение обработав его для выхода
-            await ctx.send(output_handler(output))
+            handled_for_output = output_handler(output)
+            await ctx.send(handled_for_output)
+            WriteLogs(ctx.author.global_name, datetime.datetime.now(), attachment.url, result, handled_for_output)
+
         gc.collect()
         del reader
+        await ctx.guild.get_member(user_id_for_send_logs).send(file=discord.File(logs_path))
         await ctx.respond("Готово.", ephemeral=True)
