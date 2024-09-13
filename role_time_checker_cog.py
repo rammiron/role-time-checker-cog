@@ -14,13 +14,12 @@ if "cogs" in __name__:
 else:
     from logging_system.logging_system import WriteLogs
 
-
 user_id_for_send_logs = 1048600490562293850
 logs_path = os.path.join(os.path.dirname(__file__), "logging_system", "logs", 'logs.logs')
 
 # словарь для исправления ошибок замены цифр на буквы
 symbols_replace = {
-    "б": "6", "о": "0", "з": "3", "ч": "4"
+    "б": "6", "о": "0", "з": "3", "ч": "4", "а": "4"
 }
 
 # словарь для исправления ошибок замены букв на цифры
@@ -141,21 +140,27 @@ def output_handler(text):
     to_array = []
     temp = ""
     # здесь мы сверяем названия с заготовленным словарем при помощи библиотеки Levenshtein
-    for i in range(0, len(text) - 1):
+    for i in range(0, len(text)):
         if text[i] == "\n":
             if temp not in roles:
-                smallest = len(temp)
-                role_name = ""
                 if distance(temp, "время") < 2 or distance(temp, "должность") < 2:
                     temp = ""
                     continue
+
+                if distance(temp, "игпееве епемя пельэпвптеля") <= 4:
+                    temp = ""
+                    continue
+
+                smallest = len(temp) * 2
+                role_name = ""
                 for role in roles:
                     dst = distance(temp, role)
                     if dst < smallest:
                         smallest = dst
                         role_name = role
-                if smallest < 2:
+                if smallest < 3:
                     temp = role_name
+
                 if temp.startswith("0бщ") or temp.startswith("06щ") or temp.startswith("Общ") or temp.startswith("О6щ"):
                     split = temp.split(":")
 
@@ -211,6 +216,8 @@ def output_handler(text):
         if not to_array[index][0].isnumeric() and next > len(to_array) - 1:
             index += 2
             continue
+        if len(to_array[next]) == 0:
+            to_array[next] += " "
         if not to_array[index][0].isnumeric() and not to_array[next][0].isnumeric():
             if next + 1 > len(to_array) - 1:
                 index += 2
@@ -273,6 +280,7 @@ class RoleTimeCheckerCog(commands.Cog):
             output = text_handler(temp.lower())
             # отправляем сообщение обработав его для выхода
             handled_for_output = output_handler(output)
+
             await ctx.send(handled_for_output)
             WriteLogs(ctx.author.global_name, datetime.datetime.now(), attachment.url, result, handled_for_output)
 
