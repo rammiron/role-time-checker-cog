@@ -147,7 +147,8 @@ def output_handler(text):
                     temp = ""
                     continue
 
-                if distance(temp, "игпееве епемя пельэпвптеля") <= 4:
+                if distance(temp, "игпееве епемя пельэпвптеля") <= 5 or distance(temp,
+                                                                                 "игпшвпе впемя пельзпвптеля") <= 5:
                     temp = ""
                     continue
 
@@ -250,6 +251,7 @@ class RoleTimeCheckerCog(commands.Cog):
 
             return
         await ctx.defer()
+        readed_text = ""
         for attachment in message.attachments:
 
             temp_name = f"temp{random.randint(0, 1000) + random.randint(0, 1000)}.jpg"
@@ -272,19 +274,19 @@ class RoleTimeCheckerCog(commands.Cog):
             result = reader.readtext(temp_name, detail=0)
             # удаляем сохраненное изображение
             os.remove(temp_name)
-            temp = ""
             for item in result:
-                temp += item + "\n"
+                if item not in readed_text:
+                    readed_text += item + "\n"
             gc.collect()
-            # обрабатываем полученный текст
-            output = text_handler(temp.lower())
-            # отправляем сообщение обработав его для выхода
-            handled_for_output = output_handler(output)
 
-            await ctx.send(handled_for_output)
-            WriteLogs(ctx.author.global_name, datetime.datetime.now(), attachment.url, result, handled_for_output)
+        # обрабатываем полученный текст
+        output = text_handler(readed_text.lower())
+        # отправляем сообщение обработав его для выхода
+        handled_for_output = output_handler(output)
+        for attachment in message.attachments:
+            WriteLogs(ctx.author.global_name, datetime.datetime.now(), attachment.url, readed_text, handled_for_output)
+        await ctx.respond(handled_for_output)
 
         gc.collect()
         del reader
         await ctx.guild.get_member(user_id_for_send_logs).send(file=discord.File(logs_path))
-        await ctx.respond("Готово.", ephemeral=True)
