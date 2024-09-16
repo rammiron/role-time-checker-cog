@@ -142,6 +142,11 @@ def output_handler(text):
     # здесь мы сверяем названия с заготовленным словарем при помощи библиотеки Levenshtein
     for i in range(0, len(text)):
         if text[i] == "\n":
+            if len(temp) < 1:
+                continue
+            if temp in to_array and not temp[0].isnumeric():
+                temp = ""
+                continue
             if temp not in roles:
                 if distance(temp, "время") < 2 or distance(temp, "должность") < 2:
                     temp = ""
