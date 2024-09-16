@@ -295,3 +295,5 @@ class RoleTimeCheckerCog(commands.Cog):
         gc.collect()
         del reader
         await ctx.guild.get_member(user_id_for_send_logs).send(file=discord.File(logs_path))
+
+
