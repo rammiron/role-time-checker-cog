@@ -92,7 +92,7 @@ roles = [
 
 # эти роли не будут добавляться в вывод
 black_list = ["агент внутренних дел", "магистрат", "юрист", "глава службы безопасности", "офицер сб", "инструктор сб",
-              "кадет сб", "смотритель", "бригмедик"]
+              "кадет сб", "смотритель", "бригмедик", "сб", "адвокат", ""]
 
 
 # функция для устранения ошибок из текста, к примеру в случае, когда "о" распознается как "0"
@@ -148,7 +148,7 @@ def output_handler(text):
                 temp = ""
                 continue
             if temp not in roles:
-                if distance(temp, "время") < 2 or distance(temp, "должность") < 2:
+                if distance(temp, "время") < 2 or distance(temp, "должность") < 2 or "сб" in temp:
                     temp = ""
                     continue
 
@@ -192,6 +192,9 @@ def output_handler(text):
     # здесь происходит компоновка названий ролей и времени, для понятного выхода соответствующего шаблону
     while index < len(to_array) - 1:
         next = index + 1
+        if len(to_array[index]) < 1:
+            index += 1
+            continue
         if to_array[index][0].isnumeric():
 
             if not len(to_array[index]) > 3:
