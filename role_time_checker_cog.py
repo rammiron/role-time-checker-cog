@@ -91,7 +91,8 @@ roles = [
 
 # эти роли не будут добавляться в вывод
 black_list = ["агент внутренних дел", "магистрат", "юрист", "глава службы безопасности", "офицер сб", "инструктор сб",
-              "кадет сб", "смотритель", "бригмедик", "сб", "адвокат", ""]
+              "кадет сб", "смотритель", "бригмедик", "сб", "адвокат", "пилот", "детектив", "cб", "служба безопасности",
+              "службы безопасности"]
 
 
 # функция для устранения ошибок из текста, к примеру в случае, когда "о" распознается как "0"
@@ -138,10 +139,13 @@ def text_handler(text):
 def output_handler(text):
     to_array = []
     temp = ""
-    # здесь мы сверяем названия с заготовленным словарем при помощи библиотеки Levenshtein
     for i in range(0, len(text)):
         if text[i] == "\n":
             if len(temp) < 1:
+                temp = ""
+                continue
+            if temp in black_list:
+                temp = ""
                 continue
             if temp in to_array and not temp[0].isnumeric():
                 temp = ""
@@ -165,18 +169,22 @@ def output_handler(text):
                         role_name = role
                 if smallest < 3:
                     temp = role_name
-
+                if temp in black_list or role_name in black_list:
+                    temp = ""
+                    continue
                 if temp.startswith("0бщ") or temp.startswith("06щ") or temp.startswith("Общ") or temp.startswith("О6щ"):
+                    if ":" not in temp:
+                        temp = ""
+                        continue
                     split = temp.split(":")
 
                     to_array.append(f"\nвсё")
                     to_array.append(split[1].replace(" ", ""))
                     temp = ""
                     continue
-                if temp in black_list:
-                    temp = ""
-                    continue
-
+            if temp in black_list:
+                temp = ""
+                continue
             if temp in role_names_replace:
                 to_array.append(role_names_replace[temp])
                 temp = ""
@@ -196,7 +204,7 @@ def output_handler(text):
             continue
         if to_array[index][0].isnumeric():
 
-            if not len(to_array[index]) > 3:
+            if len(to_array[index]) < 3:
                 index += 1
                 continue
 
@@ -204,6 +212,10 @@ def output_handler(text):
                     and to_array[index][2] != " "):
 
                 if to_array[next][0].isnumeric():
+
+                    if to_array[index] in black_list:
+                        index += 2
+                        continue
 
                     to_array[index] = numeric_replace[to_array[index][0]] + to_array[index][1:]
                     output += f"{to_array[index]}: {to_array[next]}\n"
@@ -251,7 +263,6 @@ class RoleTimeCheckerCog(commands.Cog):
 
     @commands.message_command(name="Извлечь время ролей.")
     async def get_time(self, ctx: discord.ApplicationContext, message: discord.Message):
-
 
         if not message.attachments:
             await ctx.respond("Скриншот не обнаружен.", ephemeral=True)
