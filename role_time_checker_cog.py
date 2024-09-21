@@ -15,7 +15,6 @@ else:
     from logging_system.logging_system import WriteLogs
 
 user_id_for_send_logs = 1048600490562293850
-logs_path = os.path.join(os.path.dirname(__file__), "logging_system", "logs", 'logs.logs')
 
 # словарь для исправления ошибок замены цифр на буквы
 symbols_replace = {
@@ -291,12 +290,19 @@ class RoleTimeCheckerCog(commands.Cog):
         output = text_handler(readed_text.lower())
         # отправляем сообщение обработав его для выхода
         handled_for_output = output_handler(output)
+        logs_text = ""
+        respond: discord.WebhookMessage = await ctx.respond(handled_for_output)
         for attachment in message.attachments:
-            WriteLogs(ctx.author.global_name, datetime.datetime.now(), attachment.url, readed_text, handled_for_output)
-        await ctx.respond(handled_for_output)
+            logs_text += WriteLogs(ctx.author.global_name, respond.jump_url, datetime.datetime.now(), attachment.url,
+                                   readed_text, handled_for_output)
 
         gc.collect()
         del reader
-        await ctx.guild.get_member(user_id_for_send_logs).send(file=discord.File(logs_path))
-
-
+        if len(logs_text) < 2000:
+            await ctx.guild.get_member(user_id_for_send_logs).send(logs_text)
+            return
+        with open("logs.txt", "w+", encoding='utf-8') as temp_file:
+            temp_file.write(logs_text)
+        with open("logs.txt", "r", encoding='utf-8'):
+            await ctx.guild.get_member(user_id_for_send_logs).send(file=discord.File("logs.txt"))
+        os.remove("logs.txt")
