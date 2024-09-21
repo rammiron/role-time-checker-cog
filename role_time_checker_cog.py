@@ -91,7 +91,8 @@ roles = [
 
 # эти роли не будут добавляться в вывод
 black_list = ["агент внутренних дел", "магистрат", "юрист", "глава службы безопасности", "офицер сб", "инструктор сб",
-              "кадет сб", "смотритель", "бригмедик", "сб", "адвокат", "пилот", "детектив", "cб", "служба безопасности",
+              "кадет сб", "смотритель", "бригмедик", "кадет", "сб", "адвокат", "пилот", "детектив", "cб",
+              "служба безопасности",
               "службы безопасности"]
 
 
@@ -203,7 +204,6 @@ def output_handler(text):
             index += 1
             continue
         if to_array[index][0].isnumeric():
-
             if len(to_array[index]) < 3:
                 index += 1
                 continue
@@ -246,7 +246,11 @@ def output_handler(text):
                     to_array[next + 1][1].isnumeric() or to_array[next + 1][1] == "ч"):
                 if to_array[index].endswith('"'):
                     to_array[index] = f'"{to_array[index]}'
-                output += f"{to_array[index]} {to_array[next]}: {to_array[next + 1]}\n"
+                if f"{to_array[index]} {to_array[next]}" in roles or f"{to_array[index]} {to_array[next]}" in black_list:
+                    output += f"{to_array[index]} {to_array[next]}: {to_array[next + 1]}\n"
+                    index += 3
+                    continue
+                output += f"{to_array[index]}: {to_array[next + 1]}\n"
                 index += 3
                 continue
             index += 2
