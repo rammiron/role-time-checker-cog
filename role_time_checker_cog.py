@@ -252,12 +252,13 @@ class RoleTimeCheckerCog(commands.Cog):
     @commands.message_command(name="Извлечь время ролей.")
     async def get_time(self, ctx: discord.ApplicationContext, message: discord.Message):
 
-        reader = easyocr.Reader(['ru'], gpu=True)
+
         if not message.attachments:
             await ctx.respond("Скриншот не обнаружен.", ephemeral=True)
 
             return
         await ctx.defer()
+        reader = easyocr.Reader(['ru'], gpu=True)
         readed_text = ""
         for attachment in message.attachments:
 
