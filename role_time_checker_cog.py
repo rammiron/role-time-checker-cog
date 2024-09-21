@@ -167,7 +167,7 @@ def output_handler(text):
                     if dst < smallest:
                         smallest = dst
                         role_name = role
-                if smallest < 3:
+                if smallest < 2:
                     temp = role_name
                 if temp in black_list or role_name in black_list:
                     temp = ""
