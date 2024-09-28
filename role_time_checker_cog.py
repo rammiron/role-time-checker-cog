@@ -202,24 +202,27 @@ def output_handler(text):
         next = index + 1
         if len(to_array[index]) < 1:
             index += 1
+
             continue
         if to_array[index][0].isnumeric():
             if len(to_array[index]) < 3:
                 index += 1
+
                 continue
 
             if (not to_array[index][1].isnumeric() and not to_array[index][1] == "ч" and not to_array[index][1] == "м"
                     and to_array[index][2] != " "):
 
                 if to_array[next][0].isnumeric():
-
                     if to_array[index] in black_list:
                         index += 2
+
                         continue
 
                     to_array[index] = numeric_replace[to_array[index][0]] + to_array[index][1:]
                     output += f"{to_array[index]}: {to_array[next]}\n"
                     index += 2
+
                     continue
                 elif buffer != "":
 
@@ -228,26 +231,34 @@ def output_handler(text):
                     buffer = ""
                     index += 2
                     continue
+                index += 2
+
                 continue
 
             buffer = to_array[index][0]
             index += 1
+
             continue
         if not to_array[index][0].isnumeric() and next > len(to_array) - 1:
             index += 2
+
             continue
         if len(to_array[next]) == 0:
-            to_array[next] += " "
+            to_array.remove(to_array[next])
+
         if not to_array[index][0].isnumeric() and not to_array[next][0].isnumeric():
+
             if next + 1 > len(to_array) - 1:
                 index += 2
+
                 continue
             if to_array[next + 1][0].isnumeric() and (
                     to_array[next + 1][1].isnumeric() or to_array[next + 1][1] == "ч"):
-                if to_array[index].endswith('"'):
-                    to_array[index] = f'"{to_array[index]}'
-                if f"{to_array[index]} {to_array[next]}" in roles or f"{to_array[index]} {to_array[next]}" in black_list:
+                if f"{to_array[index]} {to_array[next]}" in roles:
                     output += f"{to_array[index]} {to_array[next]}: {to_array[next + 1]}\n"
+                    index += 3
+                    continue
+                elif f"{to_array[index]} {to_array[next]}" in black_list:
                     index += 3
                     continue
                 output += f"{to_array[index]}: {to_array[next + 1]}\n"
@@ -257,7 +268,6 @@ def output_handler(text):
             continue
         output += f"{to_array[index]}: {to_array[next]}\n"
         index += 2
-
     return output
 
 
