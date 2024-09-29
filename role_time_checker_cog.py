@@ -218,8 +218,10 @@ def output_handler(text):
                         index += 2
 
                         continue
-
-                    to_array[index] = numeric_replace[to_array[index][0]] + to_array[index][1:]
+                    try:
+                        to_array[index] = numeric_replace[to_array[index][0]] + to_array[index][1:]
+                    except:
+                        pass
                     output += f"{to_array[index]}: {to_array[next]}\n"
                     index += 2
 
